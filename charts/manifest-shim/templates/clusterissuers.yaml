@@ -1,0 +1,41 @@
+{{ range .Values.clusterIssuers -}}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ required "Missing value .Values.clusterIssuers[].name" .name | quote }}
+  
+  {{- with (merge (default .annotations (dict)) $.Values.annotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with (merge (default .labels (dict)) $.Values.labels) }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+
+  {{- with .labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+spec:
+  acme:
+    preferredChain: {{ .preferredChain | default "ISRG Root X1" | quote }}
+    privateKeySecretRef:
+      name: {{ required "Missing value .Values.clusterIssuers[].name" .name | quote }}
+
+    {{ if eq .server "lets-encrypt-staging" -}}
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    {{ else if eq .server "lets-encrypt-production" -}}
+    server: https://acme-v02.api.letsencrypt.org/directory
+    {{ else -}}
+    server: {{ required "Missing value .Values.clusterIssuers[].server" .server }}
+    {{ end -}}
+
+    email: {{ required "Missing value .Values.clusterIssuers[].email" .email | quote }}
+    solvers:
+      {{- required "Missing value .Values.clusterIssuers[].solvers" .solvers | toYaml | nindent 6 }}
+{{ end -}}

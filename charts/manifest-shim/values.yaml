@@ -1,0 +1,12 @@
+# add these annotations and labels to all resources
+labels: {}
+annotations: {}
+
+# arbitrary objects that aren't handled by the shim
+unstructuredObjects: []
+
+# ClusterIssuers for cert-manager
+clusterIssuers: []
+
+# service accounts
+serviceAccounts: []

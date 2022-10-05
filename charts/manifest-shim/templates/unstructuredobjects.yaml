@@ -1,0 +1,40 @@
+{{- $Values := .Values -}}
+{{ range .Values.unstructuredObjects -}}
+---
+apiVersion: {{ required "Missing value .Values.unstructuredObjects[].apiVersion" .apiVersion | quote }}
+kind: {{ required "Missing value .Values.unstructuredObjects[].kind" .kind | quote }}
+metadata:
+  name: {{ required "Missing value .Values.unstructuredObjects[].metadata.name" .metadata.name | quote }}
+
+  {{- with (merge (default .annotations (dict)) $.Values.annotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with (merge (default .labels (dict)) $.Values.labels) }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+{{- $remapped := . -}}
+{{- $_ := unset $remapped "apiVersion" -}}
+{{- $_ := unset $remapped "kind" -}}
+{{- $_ := unset $remapped "metadata" -}}
+
+{{- range ._imageMap -}}
+  {{- $imageInfo := (include "getByPath" (list $Values .src) | fromJson).result -}}
+  {{- $image := printf "%s:%s" $imageInfo.repository (default "latest" $imageInfo.tag) -}}
+  {{- include "setByPath" (list $remapped .dest $image) -}}
+{{- end -}}
+{{- $_ := unset $remapped "_imageMap" -}}
+
+{{- range ._valueMap -}}
+  {{- $value := (include "getByPath" (list $Values .src) | fromJson).result -}}
+  {{- include "setByPath" (list $remapped .dest $value) -}}
+{{- end -}}
+{{- $_ := unset $remapped "_valueMap" -}}
+
+{{- range $k, $v := $remapped }}
+{{ dict $k $v | toYaml }}
+{{- end }}
+{{ end -}}
