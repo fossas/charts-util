@@ -6,7 +6,8 @@ kind: {{ required "Missing value .Values.unstructuredObjects[].kind" .kind | quo
 metadata:
   name: {{ required "Missing value .Values.unstructuredObjects[].metadata.name" .metadata.name | quote }}
 
-  {{- with (merge (default .annotations (dict)) $.Values.annotations) }}
+  {{- with (merge (default .metadata.annotations (dict)) $.Values.annotations) }}
+  # what?
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
