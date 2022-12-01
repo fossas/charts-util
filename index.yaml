@@ -21,4 +21,15 @@ entries:
     urls:
     - https://github.com/fossas/charts-util/releases/download/manifest-shim-0.1.0/manifest-shim-0.1.0.tgz
     version: 0.1.0
-generated: "2022-11-17T13:03:26.700064517Z"
+  nginx-redirect:
+  - apiVersion: v2
+    appVersion: 1.22.1
+    created: "2022-12-01T21:57:43.954859985Z"
+    description: Configurable 30x redirects.
+    digest: 306f61a67d0dd20a46b38be08063e74808b680359e2d9d738d06598a6f1e769c
+    name: nginx-redirect
+    type: application
+    urls:
+    - https://github.com/fossas/charts-util/releases/download/nginx-redirect-0.1.0/nginx-redirect-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-12-01T21:57:43.954867586Z"
