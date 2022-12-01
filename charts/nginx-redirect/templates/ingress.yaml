@@ -1,0 +1,56 @@
+{{- $fullName := include "nginx-redirect.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ $fullName }}
+  labels:
+    {{- include "nginx-redirect.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+
+  {{- $sslSecrets := dict }}
+
+  rules:
+    {{- range .Values.redirects }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+        - path: {{ .path }}
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ $fullName }}
+              port:
+                number: {{ $svcPort }}
+        {{- end }}
+
+      {{- /* prepare list to use for tls secrets */}}
+      {{- if .sslSecret }}
+          {{- if not (get $sslSecrets .sslSecret) }}
+            {{- $_ := set $sslSecrets .sslSecret list }}
+          {{- end }}
+
+          {{- $secretHosts := get $sslSecrets .sslSecret }}
+          {{- $_ := set $sslSecrets .sslSecret (append $secretHosts .host) }}
+      {{- end }}
+    {{- end }}
+
+  {{- if not (empty $sslSecrets)}}
+  tls:
+    {{- range $secretName, $hosts := $sslSecrets }}
+    - hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ $secretName }}
+    {{- end }}
+  {{- end }}
